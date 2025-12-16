@@ -1,0 +1,60 @@
+using System;
+using System.IO.Ports;
+
+namespace FrequencyVisualizer
+{
+    public class SerialPortHandler
+    {
+        private SerialPort serialPort;
+
+
+        public event Action<string> DataReceived;
+
+        public SerialPortHandler(string portName, int baudRate = 9600)
+        {
+            // Instellen van de seriële poort
+            serialPort = new SerialPort(portName, baudRate)
+            {
+                NewLine = "\n",
+                DtrEnable = true,
+                RtsEnable = true
+
+            };
+
+            // Event handler koppelen
+            serialPort.DataReceived += OnDataReceived;
+        }
+
+        // Open de seriële poort
+        public void Open()
+        {
+            if (!serialPort.IsOpen)
+            {
+                serialPort.Open();
+            }
+        }
+
+        // Sluit de seriële poort
+        public void Close()
+        {
+            if (serialPort.IsOpen)
+            {
+                serialPort.Close();
+            }
+        }
+
+        // Event handler voor inkomende data
+        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                string data = serialPort.ReadLine().Trim(); // Lees een regel data
+                DataReceived?.Invoke(data); // Roep event aan met ontvangen data
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Fout bij het lezen van data: " + ex.Message);
+            }
+        }
+    }
+}
