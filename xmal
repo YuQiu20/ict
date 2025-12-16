@@ -1,0 +1,8 @@
+<Window x:Class="FrequencyVisualizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Frequency Visualizer" Height="350" Width="800">
+    <Grid>
+        <Canvas Name="FrequencyCanvas" Background="Black" />
+    </Grid>
+</Window>
