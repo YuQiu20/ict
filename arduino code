@@ -1,0 +1,85 @@
+#include <Arduino.h>
+#include <LedControl.h>
+
+
+#define STROBE_PIN 7          
+#define RESET_PIN 6           
+#define ANALOG_PIN A0         
+
+
+#define DIN_PIN 11          
+#define CLK_PIN 13            
+#define CS_PIN 10            
+
+#define MAX_DEVICES 4      
+
+LedControl lc = LedControl(DIN_PIN, CLK_PIN, CS_PIN, MAX_DEVICES);
+
+void setup() {
+   
+    Serial.begin(9600);       
+    pinMode(STROBE_PIN, OUTPUT);
+    pinMode(RESET_PIN, OUTPUT);
+    digitalWrite(RESET_PIN, LOW);
+    digitalWrite(STROBE_PIN, HIGH);
+    delay(50);                
+
+    // Initialiseer MAX7219 modules
+    for (int i = 0; i < MAX_DEVICES; i++) {
+        lc.shutdown(i, false);      
+        lc.setIntensity(i, 8);      
+        lc.clearDisplay(i);         
+    }
+}
+
+void loop() {
+    int spectrumValue[7]; 
+
+   
+    digitalWrite(RESET_PIN, HIGH);
+    digitalWrite(RESET_PIN, LOW);
+
+    
+    for (int i = 0; i < 7; i++) {
+        digitalWrite(STROBE_PIN, LOW);
+        delayMicroseconds(30); 
+        spectrumValue[i] = analogRead(ANALOG_PIN);
+        digitalWrite(STROBE_PIN, HIGH);
+    }
+
+    // Visualiseer op MAX7219
+    for (int col = 0; col < 7; col++) {
+        int height = map(spectrumValue[col], 0, 1023, 0, 8);
+        drawColumn(col, height);
+    }
+
+    
+    for (int i = 0; i < 7; i++) {
+        Serial.print(spectrumValue[i]);
+        if (i < 6) {
+            Serial.print(","); 
+        }
+    }
+    Serial.println(); 
+    delay(100);       
+}
+
+
+void drawColumn(int col, int height) {
+    for (int display = 0; display < MAX_DEVICES; display++) {
+        for (int row = 0; row < 8; row++) {
+            
+            int globalCol = display * 8 + col;
+
+            
+            if (globalCol >= display * 8 && globalCol < (display + 1) * 8) {
+                
+                if (row < height) {
+                    lc.setLed(display, row, col, true); 
+                } else {
+                    lc.setLed(display, row, col, false); 
+                }
+            }
+        }
+    }
+}
